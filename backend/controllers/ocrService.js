@@ -4,7 +4,7 @@
  * OCR_MODE=google → uses Google Cloud Vision API (requires credentials)
  */
 
-const fs = require('fs');
+const fs = require("fs");
 
 // Mock OCR: generates plausible student answers based on question count
 const mockOCR = (questions) => {
@@ -18,7 +18,8 @@ const mockOCR = (questions) => {
 
   const result = {};
   questions.forEach((q, idx) => {
-    result[`q${q.questionNumber}`] = mockAnswers[(idx % 5) + 1] || 
+    result[`q${q.questionNumber}`] =
+      mockAnswers[(idx % 5) + 1] ||
       `Student answer for question ${q.questionNumber}: This is a simulated OCR response demonstrating the system.`;
   });
   return result;
@@ -29,30 +30,32 @@ const googleOCR = async (filePath, questions) => {
   // Requires: npm install @google-cloud/vision
   // and GOOGLE_APPLICATION_CREDENTIALS env var pointing to service account JSON
   try {
-    const vision = require('@google-cloud/vision');
+    const vision = require("@google-cloud/vision");
     const client = new vision.ImageAnnotatorClient();
     const [result] = await client.textDetection(filePath);
-    const fullText = result.fullTextAnnotation?.text || '';
+    const fullText = result.fullTextAnnotation?.text || "";
 
     // Simple split strategy: divide text equally per question
     // In production, use structured layout detection or answer markers
-    const lines = fullText.split('\n').filter(l => l.trim());
+    const lines = fullText.split("\n").filter((l) => l.trim());
     const chunkSize = Math.ceil(lines.length / questions.length);
     const ocrResult = {};
     questions.forEach((q, idx) => {
-      const chunk = lines.slice(idx * chunkSize, (idx + 1) * chunkSize).join(' ');
-      ocrResult[`q${q.questionNumber}`] = chunk || 'No answer detected';
+      const chunk = lines
+        .slice(idx * chunkSize, (idx + 1) * chunkSize)
+        .join(" ");
+      ocrResult[`q${q.questionNumber}`] = chunk || "No answer detected";
     });
     return ocrResult;
   } catch (err) {
-    console.error('Google Vision OCR failed:', err.message);
-    throw new Error('OCR failed: ' + err.message);
+    console.error("Google Vision OCR failed:", err.message);
+    throw new Error("OCR failed: " + err.message);
   }
 };
 
 const extractText = async (filePath, questions) => {
-  const mode = process.env.OCR_MODE || 'mock';
-  if (mode === 'google') {
+  const mode = process.env.OCR_MODE || "mock";
+  if (mode === "google") {
     return await googleOCR(filePath, questions);
   }
   // Default: mock

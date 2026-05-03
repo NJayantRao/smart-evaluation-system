@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 :root {
   --bg: #0a0a12;
@@ -18,14 +18,18 @@
   --success: #06d6a0;
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
   --shadow-accent: 0 4px 24px var(--accent-glow);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
-  font-family: 'Sora', sans-serif;
+  font-family: "Sora", sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -33,9 +37,16 @@ body {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 3px;
+}
 
 /* Buttons */
 .btn {
@@ -44,7 +55,7 @@ body {
   gap: 8px;
   padding: 10px 20px;
   border-radius: var(--radius-sm);
-  font-family: 'Sora', sans-serif;
+  font-family: "Sora", sans-serif;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -53,32 +64,53 @@ body {
   text-decoration: none;
   white-space: nowrap;
 }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .btn-primary {
   background: var(--accent);
   color: white;
   box-shadow: var(--shadow-accent);
 }
-.btn-primary:hover:not(:disabled) { background: #7c74ff; transform: translateY(-1px); }
+.btn-primary:hover:not(:disabled) {
+  background: #7c74ff;
+  transform: translateY(-1px);
+}
 .btn-secondary {
   background: var(--bg-card2);
   color: var(--text);
   border: 1px solid var(--border);
 }
-.btn-secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 .btn-success {
   background: var(--accent2);
   color: #000;
 }
-.btn-success:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+.btn-success:hover:not(:disabled) {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
 .btn-danger {
   background: transparent;
   color: var(--red);
   border: 1px solid var(--red);
 }
-.btn-danger:hover:not(:disabled) { background: var(--red); color: white; }
-.btn-sm { padding: 6px 14px; font-size: 12px; }
-.btn-lg { padding: 14px 28px; font-size: 16px; }
+.btn-danger:hover:not(:disabled) {
+  background: var(--red);
+  color: white;
+}
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 12px;
+}
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 16px;
+}
 
 /* Cards */
 .card {
@@ -89,26 +121,45 @@ body {
 }
 
 /* Form elements */
-.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-.form-label { font-size: 13px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.5px; }
-.form-input, .form-textarea, .form-select {
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+.form-input,
+.form-textarea,
+.form-select {
   background: var(--bg-card2);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
   color: var(--text);
-  font-family: 'Sora', sans-serif;
+  font-family: "Sora", sans-serif;
   font-size: 14px;
   transition: border-color 0.2s;
   width: 100%;
 }
-.form-input:focus, .form-textarea:focus, .form-select:focus {
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
-.form-textarea { resize: vertical; min-height: 80px; }
-.form-select option { background: var(--bg-card2); }
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+.form-select option {
+  background: var(--bg-card2);
+}
 
 /* Badges */
 .badge {
@@ -120,10 +171,22 @@ body {
   font-weight: 600;
   letter-spacing: 0.3px;
 }
-.badge-uploaded { background: rgba(255,209,102,0.15); color: var(--yellow); }
-.badge-graded { background: rgba(6,214,160,0.15); color: var(--success); }
-.badge-ocr_done { background: rgba(108,99,255,0.15); color: var(--accent); }
-.badge-error { background: rgba(255,77,109,0.15); color: var(--red); }
+.badge-uploaded {
+  background: rgba(255, 209, 102, 0.15);
+  color: var(--yellow);
+}
+.badge-graded {
+  background: rgba(6, 214, 160, 0.15);
+  color: var(--success);
+}
+.badge-ocr_done {
+  background: rgba(108, 99, 255, 0.15);
+  color: var(--accent);
+}
+.badge-error {
+  background: rgba(255, 77, 109, 0.15);
+  color: var(--red);
+}
 
 /* Layout */
 .page-container {
@@ -133,8 +196,15 @@ body {
 }
 
 /* Table */
-.table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
-table { width: 100%; border-collapse: collapse; }
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 th {
   background: var(--bg-card2);
   padding: 12px 16px;
@@ -145,18 +215,42 @@ th {
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
-td { padding: 14px 16px; border-top: 1px solid var(--border); font-size: 14px; }
-tr:hover td { background: rgba(108,99,255,0.04); }
+td {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+}
+tr:hover td {
+  background: rgba(108, 99, 255, 0.04);
+}
 
 /* Mono */
-.mono { font-family: 'JetBrains Mono', monospace; }
+.mono {
+  font-family: "JetBrains Mono", monospace;
+}
 
 /* Animations */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-@keyframes spin { to { transform: rotate(360deg); } }
-.fade-in { animation: fadeIn 0.35s ease forwards; }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.fade-in {
+  animation: fadeIn 0.35s ease forwards;
+}
 .spinner {
-  width: 20px; height: 20px;
+  width: 20px;
+  height: 20px;
   border: 2px solid var(--border-light);
   border-top-color: var(--accent);
   border-radius: 50%;
