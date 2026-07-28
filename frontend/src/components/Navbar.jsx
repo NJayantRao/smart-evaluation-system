@@ -1,6 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { LogOut, BookOpen, LayoutDashboard } from "lucide-react";
+import {
+  LogOut,
+  BookOpen,
+  LayoutDashboard,
+  Sparkles,
+} from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -12,86 +17,53 @@ export default function Navbar() {
   };
 
   return (
-    <nav
-      style={{
-        background: "var(--bg-card)",
-        borderBottom: "1px solid var(--border)",
-        padding: "0 24px",
-        height: "60px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-      }}
-    >
-      <Link
-        to="/dashboard"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          textDecoration: "none",
-        }}
-      >
-        <div
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: 8,
-            background: "var(--accent)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <BookOpen size={18} color="white" />
+    <header className="navbar">
+      <div className="navbar-glow"></div>
+
+      <Link to="/dashboard" className="navbar-logo">
+
+        <div className="logo-box">
+          <BookOpen size={18} />
         </div>
-        <span style={{ fontWeight: 700, fontSize: 16, color: "var(--text)" }}>
-          Smart<span style={{ color: "var(--accent)" }}>Eval</span>
-        </span>
+
+        <div className="logo-text">
+          Smart<span>Eval</span>
+        </div>
+
+        <Sparkles size={14} className="logo-sparkle" />
+
       </Link>
 
       {user && (
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <Link
-            to="/dashboard"
-            className="btn btn-secondary btn-sm"
-            style={{ gap: 6 }}
-          >
-            <LayoutDashboard size={14} /> Dashboard
+        <div className="navbar-right">
+
+          <Link to="/dashboard" className="dashboard-pill">
+            <LayoutDashboard size={16} />
+            Dashboard
           </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: "var(--accent)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 700,
-                fontSize: 13,
-                color: "white",
-              }}
-            >
+
+          <div className="profile-box">
+
+            <div className="profile-avatar">
               {user.name?.charAt(0).toUpperCase()}
             </div>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
-              {user.name}
-            </span>
+
+            <div className="profile-info">
+              <span className="profile-name">{user.name}</span>
+              <span className="profile-role">Teacher</span>
+            </div>
+
           </div>
+
           <button
+            className="logout-btn"
             onClick={handleLogout}
-            className="btn btn-secondary btn-sm"
-            title="Logout"
           >
-            <LogOut size={14} />
+            <LogOut size={17}/>
           </button>
+
         </div>
       )}
-    </nav>
+    </header>
   );
 }
