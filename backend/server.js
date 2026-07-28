@@ -1,10 +1,12 @@
-require("dotenv").config();
+const dotenv = require("dotenv");
 require("express-async-errors");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const path = require("path");
 const fs = require("fs");
+
+dotenv.config();
 
 const authRoutes = require("./routes/auth");
 const examRoutes = require("./routes/exams");
@@ -18,6 +20,7 @@ const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 // Middleware
+console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
