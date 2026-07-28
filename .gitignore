@@ -3,3 +3,5 @@ dist/
 build/
 .env
 backend/google-key.json
+backend/uploads/*
+!backend/uploads/.gitkeep
