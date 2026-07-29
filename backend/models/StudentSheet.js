@@ -15,7 +15,9 @@ const studentSheetSchema = new mongoose.Schema(
     exam: { type: mongoose.Schema.Types.ObjectId, ref: "Exam", required: true },
     studentName: { type: String, required: true, trim: true },
     rollNumber: { type: String, required: true, trim: true },
-    fileUrl: { type: String },
+    fileId: {
+      type: mongoose.Schema.Types.ObjectId,
+    },
     ocrText: { type: mongoose.Schema.Types.Mixed, default: {} }, // { q1: "text", q2: "text" }
     status: {
       type: String,
@@ -25,7 +27,9 @@ const studentSheetSchema = new mongoose.Schema(
     gradingResults: [gradingResultSchema],
     totalMarks: { type: Number, default: 0 },
     maxTotalMarks: { type: Number, default: 0 },
-    pdfUrl: { type: String },
+    // GridFS file id of the generated report PDF (replaces the old local
+    // "/uploads/<file>.pdf" path).
+    pdfFileId: { type: mongoose.Schema.Types.ObjectId },
   },
   { timestamps: true },
 );

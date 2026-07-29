@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const path = require("path");
-const fs = require("fs");
 const { protect } = require("../middleware/auth");
 const StudentSheet = require("../models/StudentSheet");
+const { openDownloadStream, deleteFile } = require("../utils/gridfs");
 
 // GET /api/results/:id — Get a single student result
 router.get("/:id", protect, async (req, res) => {
@@ -12,30 +11,51 @@ router.get("/:id", protect, async (req, res) => {
   res.json(sheet);
 });
 
-// GET /api/results/:id/pdf — Download student PDF report
+// GET /api/results/:id/pdf — Download student PDF report (streamed from GridFS)
 router.get("/:id/pdf", protect, async (req, res) => {
   const sheet = await StudentSheet.findById(req.params.id);
-  if (!sheet || !sheet.pdfUrl)
+  if (!sheet || !sheet.pdfFileId)
     return res
       .status(404)
       .json({ message: "PDF not found. Grade the sheet first." });
-
-  const filePath = path.join(__dirname, "..", sheet.pdfUrl);
-  if (!fs.existsSync(filePath))
-    return res.status(404).json({ message: "PDF file missing on server" });
 
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader(
     "Content-Disposition",
     `attachment; filename="report_${sheet.studentName.replace(/\s+/g, "_")}.pdf"`,
   );
-  fs.createReadStream(filePath).pipe(res);
+
+  let stream;
+  try {
+    stream = openDownloadStream(sheet.pdfFileId);
+  } catch (err) {
+    return res.status(404).json({ message: "PDF file missing in storage" });
+  }
+
+  stream.on("error", () => {
+    if (!res.headersSent) {
+      res.status(404).json({ message: "PDF file missing in storage" });
+    } else {
+      res.end();
+    }
+  });
+
+  stream.pipe(res);
 });
 
-// DELETE /api/results/:id — Delete a student sheet
+// DELETE /api/results/:id — Delete a student sheet (and its GridFS files)
 router.delete("/:id", protect, async (req, res) => {
   const sheet = await StudentSheet.findByIdAndDelete(req.params.id);
   if (!sheet) return res.status(404).json({ message: "Result not found" });
+
+  // Best-effort cleanup of the associated GridFS files; a missing file
+  // should never block the sheet record from being deleted.
+  await Promise.all(
+    [sheet.fileId, sheet.pdfFileId]
+      .filter(Boolean)
+      .map((id) => deleteFile(id).catch(() => {})),
+  );
+
   res.json({ message: "Deleted successfully" });
 });
 

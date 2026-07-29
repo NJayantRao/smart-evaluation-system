@@ -11,8 +11,11 @@ const {
   extractQuestionsFromImage,
 } = require("../controllers/gradingService");
 const { generatePDF } = require("../controllers/pdfService");
-const fs = require("fs");
-const path = require("path");
+const {
+  uploadFile,
+  downloadFile,
+  getFileMetadata,
+} = require("../utils/gridfs");
 
 // ─── EXAM CRUD ──────────────────────────────────────────────────────────────
 
@@ -92,14 +95,13 @@ router.post(
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
     try {
-      const filePath = req.file.path;
       const mimeType = req.file.mimetype;
+      const dataBuffer = req.file.buffer; // multer memoryStorage — already in RAM
       let questions;
 
       if (mimeType === "application/pdf") {
         // For PDF: extract text first using pdf-parse, then send to Gemini
         const pdfParse = require("pdf-parse");
-        const dataBuffer = fs.readFileSync(filePath);
         const pdfData = await pdfParse(dataBuffer);
         const paperText = pdfData.text;
 
@@ -107,8 +109,7 @@ router.post(
           questions = await extractQuestionsFromPaper(paperText);
         } else {
           // PDF has no extractable text (scanned) — use vision
-          // Convert first page to image via sharp or use base64 of pdf
-          const imageBase64 = fs.readFileSync(filePath).toString("base64");
+          const imageBase64 = dataBuffer.toString("base64");
           questions = await extractQuestionsFromImage(
             imageBase64,
             "application/pdf",
@@ -116,12 +117,9 @@ router.post(
         }
       } else {
         // Image file — use Gemini Vision
-        const imageBase64 = fs.readFileSync(filePath).toString("base64");
+        const imageBase64 = dataBuffer.toString("base64");
         questions = await extractQuestionsFromImage(imageBase64, mimeType);
       }
-
-      // Clean up temp file
-      fs.unlinkSync(filePath);
 
       // Update exam with extracted questions
       exam.questions = questions.map((q, i) => ({
@@ -144,10 +142,6 @@ router.post(
       res.json({ exam, questionsExtracted: exam.questions.length });
     } catch (err) {
       console.error("Question paper extraction error:", err.message);
-      // Clean up file on error
-      if (req.file?.path && fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
       res.status(500).json({
         message: err.message || "Failed to extract questions from paper",
       });
@@ -164,36 +158,31 @@ router.post(
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
     try {
-      const filePath = req.file.path;
       const mimeType = req.file.mimetype;
+      const dataBuffer = req.file.buffer; // multer memoryStorage — already in RAM
       let questions;
 
       if (mimeType === "application/pdf") {
         const pdfParse = require("pdf-parse");
-        const dataBuffer = fs.readFileSync(filePath);
         const pdfData = await pdfParse(dataBuffer);
         const paperText = pdfData.text;
 
         if (paperText && paperText.trim().length > 50) {
           questions = await extractQuestionsFromPaper(paperText);
         } else {
-          const imageBase64 = fs.readFileSync(filePath).toString("base64");
+          const imageBase64 = dataBuffer.toString("base64");
           questions = await extractQuestionsFromImage(
             imageBase64,
             "application/pdf",
           );
         }
       } else {
-        const imageBase64 = fs.readFileSync(filePath).toString("base64");
+        const imageBase64 = dataBuffer.toString("base64");
         questions = await extractQuestionsFromImage(imageBase64, mimeType);
       }
 
-      fs.unlinkSync(filePath);
       res.json({ questions, questionsExtracted: questions.length });
     } catch (err) {
-      if (req.file?.path && fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
       res
         .status(500)
         .json({ message: err.message || "Failed to extract questions" });
@@ -221,13 +210,12 @@ router.post(
         .status(400)
         .json({ message: "studentName and rollNumber are required" });
 
-    const fileUrl = req.file ? `/uploads/${req.file.filename}` : null;
-
+    const fileId = await uploadFile(req.file);
     const sheet = await StudentSheet.create({
       exam: exam._id,
       studentName,
       rollNumber,
-      fileUrl,
+      fileId,
       status: "uploaded",
     });
 
@@ -257,11 +245,13 @@ router.post("/:id/grade/:sheetId", protect, async (req, res) => {
     });
 
   try {
-    // Step 1: OCR
-    const filePath = sheet.fileUrl
-      ? path.join(__dirname, "..", sheet.fileUrl)
-      : null;
-    const ocrText = await extractText(filePath, exam.questions);
+    // Step 1: OCR — pull the sheet bytes + its stored content type back out
+    // of GridFS (no local disk involved at any point)
+    const buffer = await downloadFile(sheet.fileId);
+    const fileMeta = await getFileMetadata(sheet.fileId);
+    const mimeType = fileMeta?.contentType || "application/octet-stream";
+
+    const ocrText = await extractText(buffer, mimeType, exam.questions);
     sheet.ocrText = ocrText;
     sheet.status = "ocr_done";
     await sheet.save();
@@ -277,8 +267,8 @@ router.post("/:id/grade/:sheetId", protect, async (req, res) => {
       0,
     );
 
-    // Step 3: Generate PDF
-    const { fileName } = await generatePDF({
+    // Step 3: Generate PDF (already saved straight to GridFS by generatePDF)
+    const { fileId: pdfFileId } = await generatePDF({
       studentName: sheet.studentName,
       rollNumber: sheet.rollNumber,
       examTitle: exam.title,
@@ -291,7 +281,7 @@ router.post("/:id/grade/:sheetId", protect, async (req, res) => {
     sheet.gradingResults = gradingResults;
     sheet.totalMarks = totalMarks;
     sheet.maxTotalMarks = maxTotalMarks;
-    sheet.pdfUrl = `/uploads/${fileName}`;
+    sheet.pdfFileId = pdfFileId;
     sheet.status = "graded";
     await sheet.save();
 

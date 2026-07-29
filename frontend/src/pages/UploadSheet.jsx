@@ -13,9 +13,6 @@ import {
   Download,
 } from "lucide-react";
 
-// Vite uses import.meta.env.VITE_* instead of process.env.REACT_APP_*
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
 export default function UploadSheet() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -90,6 +87,27 @@ export default function UploadSheet() {
     setUploadedSheet(null);
     setFile(null);
     setForm({ studentName: "", rollNumber: "" });
+  };
+
+  const downloadPdf = async () => {
+    if (!uploadedSheet?.pdfFileId) return;
+    try {
+      const { data } = await api.get(`/results/${uploadedSheet._id}/pdf`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(
+        new Blob([data], { type: "application/pdf" }),
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `report_${uploadedSheet.studentName.replace(/\s+/g, "_")}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to download PDF");
+    }
   };
 
   if (!exam)
@@ -533,15 +551,14 @@ export default function UploadSheet() {
             <button onClick={resetForm} className="btn btn-secondary">
               Grade Another
             </button>
-            {uploadedSheet.pdfUrl && (
-              <a
-                href={`${API_BASE}${uploadedSheet.pdfUrl}`}
-                target="_blank"
-                rel="noreferrer"
+            {uploadedSheet.pdfFileId && (
+              <button
+                onClick={downloadPdf}
                 className="btn btn-success"
+                type="button"
               >
                 <Download size={16} /> Download PDF Report
-              </a>
+              </button>
             )}
             <button
               onClick={() => navigate(`/exams/${id}/results`)}

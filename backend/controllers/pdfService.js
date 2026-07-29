@@ -1,7 +1,5 @@
 const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
-const fs = require("fs");
-const path = require("path");
-
+const getBucket = require("../config/gridfs");
 /**
  * Strip characters that WinAnsi / pdf-lib StandardFonts cannot encode.
  * Removes emoji and any codepoint above U+00FF (Latin-1 boundary).
@@ -228,13 +226,31 @@ const generatePDF = async ({
     { size: 8, color: colors.gray },
   );
 
-  // ── Save ──────────────────────────────────────────────────────────────────
-  const pdfBytes = await pdfDoc.save();
+  // ── Save to GridFS ─────────────────────────────────────────────────────────
+  const pdfBytes = await pdfDoc.save(); // pdf-lib returns a plain Uint8Array
+  const pdfBuffer = Buffer.from(pdfBytes); // must be a real Buffer for the stream
   const fileName = `report_${sanitize(rollNumber)}_${Date.now()}.pdf`;
-  const outputPath = path.join(__dirname, "../uploads", fileName);
-  fs.writeFileSync(outputPath, pdfBytes);
 
-  return { fileName, filePath: outputPath };
+  const bucket = getBucket();
+
+  if (!bucket) {
+    throw new Error("GridFS bucket not initialized");
+  }
+
+  const fileId = await new Promise((resolve, reject) => {
+    const uploadStream = bucket.openUploadStream(fileName, {
+      contentType: "application/pdf",
+    });
+
+    uploadStream.on("error", reject);
+    uploadStream.on("finish", () => resolve(uploadStream.id));
+    uploadStream.end(pdfBuffer);
+  });
+
+  return {
+    fileId,
+    fileName,
+  };
 };
 
 module.exports = { generatePDF };
